@@ -14,9 +14,11 @@ public class IndexableSkipList extends AbstractSkipList {
     @Override
     public SkipListNode find(int key) {
         SkipListNode p = this.head;
+        int rank = 0;
         for (int i = p.height(); i >= 0; i--) {
             while (p.getNext(i) != null && p.getNext(i).key() <= key) {
                 p = p.getNext(i);
+                rank = rank + p.getWidth(i);
             }
         }
         return p;
@@ -32,7 +34,15 @@ public class IndexableSkipList extends AbstractSkipList {
     }
 
     public int rank(int key) {
-        throw new UnsupportedOperationException("Delete this line and replace it with your implementation");
+        SkipListNode p = head;
+        int rank = 0;
+        for (int i = head.height(); i >= 0; i--) {
+            while (p.getNext(i) != null && p.getNext(i).key() <= key) {
+                rank = rank + p.getWidth(i);
+                p = p.getNext(i);
+            }
+        }
+        return rank;
     }
 
     public int select(int index) {
