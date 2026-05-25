@@ -42,8 +42,8 @@ abstract public class AbstractSkipList {
         int rank = 0;
         for (int i = prevNode.height(); i >= 0; i--) {
             while (prevNode.getNext(i) != null && prevNode.getNext(i).key() <= key) {
-                prevNode = prevNode.getNext(i);
                 rank = rank + prevNode.getWidth(i);
+                prevNode = prevNode.getNext(i);
             }
             update[i] = prevNode;
             rank_update[i] = rank;
@@ -61,10 +61,9 @@ abstract public class AbstractSkipList {
             SkipListNode right = left.getNext(level);
 
             int oldWidth = left.getWidth(level);
-            int distToNewNode = rank - rank_update[level];
+            int distToNewNode = rank - rank_update[level] + 1;
             left.setWidth(level, distToNewNode);
             newNode.setWidth(level, oldWidth - distToNewNode + 1);
-
             newNode.setNext(level, right);
             newNode.setPrev(level, left);
             left.setNext(level, newNode);
@@ -90,12 +89,17 @@ abstract public class AbstractSkipList {
             update[i] = prevNode;
         }
         if (update[0].getNext(0) != skipListNode) {
-            return false; // Not found in list
+            return false;
         }
 
         for (int level = 0; level <= head.height(); level++) {
             SkipListNode prev = update[level];
-            SkipListNode next = skipListNode.height >= level ? skipListNode.getNext(level) : null;
+            SkipListNode next;
+            if (skipListNode.height >= level) {
+                next = skipListNode.getNext(level);
+            } else {
+                next = null;
+            }
 
             if (level <= skipListNode.height()) {
                 int newWidth = prev.getWidth(level) + skipListNode.getWidth(level) - 1;

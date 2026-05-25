@@ -1,11 +1,12 @@
 public class IndexableSkipList extends AbstractSkipList {
-    final protected double p;	// p is the probability for "success" in the geometric process generating the height of each node.
+    final protected double p;    // p is the probability for "success" in the geometric process generating the height of each node.
+
     public IndexableSkipList(double probability) {
         super();
         this.p = probability;
     }
-	
-	@Override
+
+    @Override
     public void decreaseHeight() {
         head.removeLevel();
         tail.removeLevel();
@@ -35,7 +36,7 @@ public class IndexableSkipList extends AbstractSkipList {
 
     public int rank(int key) {
         SkipListNode p = head;
-        int rank = 0;
+        int rank = -1;
         for (int i = head.height(); i >= 0; i--) {
             while (p.getNext(i) != null && p.getNext(i).key() <= key) {
                 rank = rank + p.getWidth(i);
@@ -46,7 +47,15 @@ public class IndexableSkipList extends AbstractSkipList {
     }
 
     public int select(int index) {
-        throw new UnsupportedOperationException("Delete this line and replace it with your implementation");
-    }
+        SkipListNode currNode = this.head;
+        int dist = -1;
+        for (int i = currNode.height(); i >= 0; i--) {
+            while (currNode.getNext(i) != null && currNode.getWidth(i) + dist <= index && !currNode.getNext(i).equals(tail)) {
+                dist = dist + currNode.getWidth(i);
+                currNode = currNode.getNext(i);
+            }
+        }
+        return currNode.key();
 
+    }
 }
