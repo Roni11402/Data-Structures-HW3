@@ -17,7 +17,7 @@ abstract public class AbstractSkipList {
         head.addLevel(tail, null);
         tail.addLevel(null, head);
     }
-	
+
     abstract void decreaseHeight();
 
     abstract SkipListNode find(int key);
@@ -36,39 +36,80 @@ abstract public class AbstractSkipList {
         while (nodeHeight > head.height()) {
             increaseHeight();
         }
-
-        SkipListNode prevNode = find(key);
+        int[] rank_update = new int[head.height + 1];
+        SkipListNode prevNode = this.head;
+        SkipListNode[] update = new SkipListNode[prevNode.height + 1];
+        int rank = 0;
+        for (int i = prevNode.height(); i >= 0; i--) {
+            while (prevNode.getNext(i) != null && prevNode.getNext(i).key() <= key) {
+                prevNode = prevNode.getNext(i);
+                rank = rank + prevNode.getWidth(i);
+            }
+            update[i] = prevNode;
+            rank_update[i] = rank;
+        }
         if (prevNode.key() == key) {
             return null;
         }
 
         SkipListNode newNode = new SkipListNode(key);
+        for (int i = 0; i <= nodeHeight; i++) {
+            newNode.addLevel(null, null);
+        }
+        for (int level = 0; level <= nodeHeight; ++level) {
+            SkipListNode left = update[level];
+            SkipListNode right = left.getNext(level);
 
-        for (int level = 0; level <= nodeHeight && prevNode != null; ++level) {
-            SkipListNode nextNode = prevNode.getNext(level);
+            int oldWidth = left.getWidth(level);
+            int distToNewNode = rank - rank_update[level];
+            left.setWidth(level, distToNewNode);
+            newNode.setWidth(level, oldWidth - distToNewNode + 1);
 
-            newNode.addLevel(nextNode, prevNode);
-            prevNode.setNext(level, newNode);
-            nextNode.setPrev(level, newNode);
-
-            while (prevNode != null && prevNode.height() == level) {
-                prevNode = prevNode.getPrev(level);
+            newNode.setNext(level, right);
+            newNode.setPrev(level, left);
+            left.setNext(level, newNode);
+            if (right != null) {
+                right.setPrev(level, newNode);
             }
         }
-
+        for (int i = nodeHeight + 1; i <= head.height(); i++) {
+            update[i].setWidth(i, update[i].getWidth(i) + 1);
+        }
         return newNode;
     }
 
     public boolean delete(SkipListNode skipListNode) {
-        for (int level = 0; level <= skipListNode.height(); ++level) {
-            SkipListNode prev = skipListNode.getPrev(level);
-            SkipListNode next = skipListNode.getNext(level);
-            prev.setNext(level, next);
-            next.setPrev(level, prev);
+        if (skipListNode == null || skipListNode == head) return false;
+        SkipListNode[] update = new SkipListNode[head.height() + 1];
+        SkipListNode prevNode = this.head;
+        int rank = 0;
+        for (int i = head.height(); i >= 0; i--) {
+            while (prevNode.getNext(i) != null && prevNode.getNext(i).key() < skipListNode.key()) {
+                prevNode = prevNode.getNext(i);
+            }
+            update[i] = prevNode;
         }
-		
-        while (head.height() >= 0 && head.getNext(head.height()) == tail) {
-        	decreaseHeight();
+        if (update[0].getNext(0) != skipListNode) {
+            return false; // Not found in list
+        }
+
+        for (int level = 0; level <= head.height(); level++) {
+            SkipListNode prev = update[level];
+            SkipListNode next = skipListNode.height >= level ? skipListNode.getNext(level) : null;
+
+            if (level <= skipListNode.height()) {
+                int newWidth = prev.getWidth(level) + skipListNode.getWidth(level) - 1;
+                prev.setWidth(level, newWidth);
+                prev.setNext(level, next);
+                if (next != null) {
+                    next.setPrev(level, prev);
+                }
+            } else {
+                prev.setWidth(level, prev.getWidth(level) - 1);
+            }
+        }
+        while (head.height() > 0 && head.getNext(head.height()) == null) {
+            decreaseHeight();
         }
 
         return true;
@@ -106,11 +147,10 @@ abstract public class AbstractSkipList {
             if (curr.height >= level) {
                 s.append(curr.key());
                 s.append("    ");
-            }
-            else {
-            	s.append("    ");
-            	for (int i = 0; i < curr.key().toString().length(); i = i + 1)
-            		s.append(" ");
+            } else {
+                s.append("    ");
+                for (int i = 0; i < curr.key().toString().length(); i = i + 1)
+                    s.append(" ");
             }
 
             curr = curr.getNext(0);
@@ -133,14 +173,16 @@ abstract public class AbstractSkipList {
     public static class SkipListNode extends Element<Integer, Object> {
         final private List<SkipListNode> next;
         final private List<SkipListNode> prev;
+        final private List<Integer> width;
         private int height;
 
         public SkipListNode(int key) {
-        	super(key);
+            super(key);
             next = new ArrayList<>();
             prev = new ArrayList<>();
+            width = new ArrayList<>();
             this.height = -1;
-            
+
         }
 
         public SkipListNode getPrev(int level) {
@@ -179,14 +221,25 @@ abstract public class AbstractSkipList {
             ++height;
             this.next.add(next);
             this.prev.add(prev);
+            this.width.add(0);
         }
-		
-		public void removeLevel() {           
+
+        public void removeLevel() {
             this.next.remove(height);
             this.prev.remove(height);
             --height;
         }
 
-        public int height() { return height; }
+        public int height() {
+            return height;
+        }
+
+        public int getWidth(int i) {
+            return this.width.get(i);
+        }
+
+        public void setWidth(int i, int width) {
+            this.width.set(i, width);
+        }
     }
 }
