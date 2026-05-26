@@ -5,12 +5,24 @@ public class ModularHash implements HashFactory<Integer> {
     private HashingUtils utils;
 
     public ModularHash() {
-        throw new UnsupportedOperationException("Delete this line and replace it with your implementation");
+        this.rand = new Random();
+        this.utils = new HashingUtils();
     }
 
     @Override
     public HashFunctor<Integer> pickHash(int k) {
-        throw new UnsupportedOperationException("Delete this line and replace it with your implementation");
+        int a = rand.nextInt(Integer.MAX_VALUE -1) + 1;
+        int b = rand.nextInt(Integer.MAX_VALUE);
+        long p = utils.genPrime(Integer.MAX_VALUE+1, Long.MAX_VALUE);
+        int m = 1 << k;
+        HashFunctor<Integer> func = new HashFunctor<Integer>() {
+            @Override
+            public int hash(Integer key) {
+                long calc = (long) a * key + b;
+                return (int) utils.mod(utils.mod(calc, p),m);
+            }
+        };
+        return func;
     }
 
     public class Functor implements HashFunctor<Integer> {
