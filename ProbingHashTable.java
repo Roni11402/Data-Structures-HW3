@@ -43,7 +43,7 @@ public class ProbingHashTable<K, V> implements HashTable<K, V> {
         if (table[index].key() != null && table[index].key().equals(key)) {
             return table[index].satelliteData();
         }
-        for (int i = index + 1; i != index; i = (i + 1) % capacity) {
+        for (int i = (index + 1) % capacity; i != index; i = (i + 1) % capacity) {
             if (table[i] == null) {
                 return null;
             }
@@ -55,7 +55,7 @@ public class ProbingHashTable<K, V> implements HashTable<K, V> {
     }
 
     public void insert(K key, V value) {
-        if (size == capacity) {
+        if ((double) size/capacity >= maxLoadFactor) {
             rehashing();
         }
         int index = hashFunc.hash(key);
