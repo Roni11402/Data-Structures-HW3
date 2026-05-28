@@ -112,7 +112,7 @@ abstract public class AbstractSkipList {
                 prev.setWidth(level, prev.getWidth(level) - 1);
             }
         }
-        while (head.height() > 0 && head.getNext(head.height()) == null) {
+        while (head.height() > 0 && head.getNext(head.height()) == this.tail) {
             decreaseHeight();
         }
 

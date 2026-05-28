@@ -36,9 +36,9 @@ public class IndexableSkipList extends AbstractSkipList {
 
     public int rank(int key) {
         SkipListNode p = head;
-        int rank = -1;
+        int rank = 0;
         for (int i = head.height(); i >= 0; i--) {
-            while (p.getNext(i) != null && p.getNext(i).key() <= key) {
+            while (p.getNext(i) != null && p.getNext(i).key() < key) {
                 rank = rank + p.getWidth(i);
                 p = p.getNext(i);
             }
