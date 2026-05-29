@@ -27,7 +27,11 @@ abstract public class AbstractSkipList {
     public SkipListNode search(int key) {
         SkipListNode curr = find(key);
 
-        return curr.key() == key ? curr : null;
+        if (curr.key() == key) {
+            return curr;
+        } else {
+            return null;
+        }
     }
 
     public SkipListNode insert(int key) {
